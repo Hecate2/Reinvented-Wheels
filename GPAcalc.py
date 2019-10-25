@@ -34,7 +34,7 @@ class GPAcalc:
             for item in self.scores:
                 if (len(item)==3 or item[3]==True):    #是主课
                     score=item[2].upper()   #一门课的成绩
-                    credit=int(item[1])
+                    credit=float(item[1])
                     #下面检查输入成绩是否正常
                     if score in score_mapping:
                         score_sum+=score_mapping[score]*credit
@@ -47,7 +47,7 @@ class GPAcalc:
             for item in self.scores:
                 #if len(item)==3 or item[3]==True:    #是主课
                     score=item[2].upper()   #一门课的成绩
-                    credit=int(item[1])
+                    credit=float(item[1])
                     #下面检查输入是否正常
                     if score in score_mapping:
                         score_sum+=score_mapping[score]*credit
