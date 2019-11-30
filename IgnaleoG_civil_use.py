@@ -5,6 +5,8 @@
 #Python 3.6 or 3.7
 #More examples will be added in the future
 
+#Thank Chtholly Nota Seniorious for encouraging me to build Ignaleo destroyers
+
 import asyncio,gevent
 from gevent import monkey
 monkey.patch_all()
@@ -21,7 +23,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.platform.asyncio import AsyncIOMainLoop
 #from concurrent.futures import ThreadPoolExecutor
-import requests,cfscrape
+import requests
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -35,7 +37,7 @@ acceptLanguage=(
     'zh-cn,zh;q=0.8,zh-tw;q=0.7,zh-hk;q=0.5',
     )
 indexLanguage=len(acceptLanguage) - 1
-def genHeaders():#aiohttp会自动生成大部分header
+def genHeaders():
     headers = {
         'User-Agent': uaGen.random,
         'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
