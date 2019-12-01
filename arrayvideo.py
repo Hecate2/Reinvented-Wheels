@@ -51,11 +51,11 @@ class ArrayVideo(threading.Thread):
         print('About to play the 0-1 array video')
         interval=1/self.fps
         for frameIndex in range(self.frameCount):#对于每一帧
-            cv2.imshow('cap video',self.array[:,:,frameIndex]*65535)
+            cv2.imshow(self.windowName,self.array[:,:,frameIndex]*65535)
             cv2.waitKey(1)
             #cv2.waitKey(0) #此模式下按Ctrl+C可前进1帧
             time.sleep(interval)
-            if win32gui.FindWindow(None,'cap video'):
+            if win32gui.FindWindow(None,self.windowName):
                 pass
             else:
                 cv2.destroyAllWindows()
