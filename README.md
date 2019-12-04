@@ -5,7 +5,9 @@
   
 GPAcalc: Weighted average to calculate your GPA. (What a tiresome work to write such codes!)  
   
-IgnaleoG: Combat-proven *destroyer* (a type of battleship) sending HTTP requests with stability and virtually unlimited concurrency. It runs as an HTTP server, and launches jobs on your HTTP request. Example offered at https://github.com/Hecate2/ISML_auto_voter. Recommended accessories: retryapi.py & compat.py.  
+IgnaleoG: Combat-proven *destroyer* (a type of battleship) sending HTTP requests with stability and virtually unlimited concurrency. It runs as an HTTP server, and launches jobs on your HTTP request. Example offered at https://github.com/Hecate2/ISML_auto_voter and *mysql.py* in this repository. Recommended accessories: retryapi.py & compat.py.  
+
+mysql.py & sqlalchemyOps.py: test the performance of mysql libraries with IgnaleoG. Gevent does not speed up SQL queries!  
   
 retryapi.py & compat.py: They provide decorators for non-asynchronous functions. Retry running the decorated function for a few times when an Exception occurs in the function.  
   
