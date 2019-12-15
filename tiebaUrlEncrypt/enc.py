@@ -54,9 +54,10 @@ if __name__=='__main__':
             with open(defaultFilename,'r',encoding=('utf-8')) as f:
                 str_in=f.read()
         except Exception:
-            logger.warning('获取输入失败。请检查是否存在%s。%s秒后自动退出'%(defaultFilename,sleepTime))
-            time.sleep(sleepTime)
-            sys.exit(1)
+            logger.warning('获取输入失败。请检查是否存在%s'%(defaultFilename))
+            str_in=input("请手动输入需要加密/解密的内容:\n")
+            #time.sleep(sleepTime)
+            #sys.exit(1)
             
     parse.quote(str_in).replace('%3A',':')#中文转url编码，但不改变英文冒号
     
