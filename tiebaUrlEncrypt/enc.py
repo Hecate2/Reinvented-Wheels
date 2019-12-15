@@ -44,7 +44,7 @@ if __name__=='__main__':
         except Exception:
             logger.warning('安装pyperclip失败')
     print()
-    logger.info(r'每个中文字将被变为类似%E6%9C的形式。这不影响url的使用')
+    #logger.info(r'每个中文字将被变为类似%E6%9C的形式。这不影响url的使用')
 
     if len(sys.argv)>1:
         str_in=sys.argv[1]
@@ -59,7 +59,7 @@ if __name__=='__main__':
             #time.sleep(sleepTime)
             #sys.exit(1)
             
-    parse.quote(str_in).replace('%3A',':')#中文转url编码，但不改变英文冒号
+    #str_in=parse.quote(str_in).replace('%3A',':')#中文转url编码，但不改变英文冒号
     
     print('原字符串:\n%s'%(str_in))
     encrypted=enc(str_in,pswd)#加密
