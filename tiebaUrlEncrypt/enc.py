@@ -29,8 +29,6 @@ def enc(str_in,pswd):
 if __name__=='__main__':
     sleepTime=10
     defaultFilename='input.txt'
-    logger.info(r'每个中文字将被变为类似%E6%9C的形式。这不影响url的使用')
-    print()
 
     try:
         import pyperclip
@@ -44,7 +42,9 @@ if __name__=='__main__':
             import pyperclip
             hasPyperclip=True
         except Exception:
-            logger.info('安装pyperclip失败')
+            logger.warning('安装pyperclip失败')
+    print()
+    logger.info(r'每个中文字将被变为类似%E6%9C的形式。这不影响url的使用')
 
     if len(sys.argv)>1:
         str_in=sys.argv[1]
