@@ -21,5 +21,5 @@ Example input and outut:
 **䁨䁴䁴䁰䁳䀺䀯䀯䁧䁩䁴䁨䁵䁢䀮䁣䁯䁭䀯䁈䁥䁣䁡䁴䁥䀲䀯䁉䁓䁍䁌䁟䁡䁵䁴䁯䁟䁶䁯䁴䁥䁲䀯䁲䁡䁷䀯䁭䁡䁳䁴䁥䁲䀯䁄䁥䁳䁴䁲䁯䁹䁥䁲䁉䁇䁎䀯䁃䁉䁎䁔䀥䀲䀰䁴䁨䁥䀥䀲䀰䁓䁰䁡䁣䁥䀥䀲䀰䁆䁬䁥䁥䁴䀥䀲䀰䁈䁥䁣䁡䁴䁥䀲䀥䀲䀰䀨䀥䁅䀶䀥䀹䁃䀥䁁䁁䀥䁅䀹䀥䀸䀵䀥䀸䁄䀥䁅䀴䀥䁂䀹䀥䀹䀰䀩䀮䁤䁯䁣䁸**  
 *enc.py* uses simple XOR (exclusive OR, 0 xor 1 = 1) operations mapping URLs to Chinese characters. To restore the original URL, use the encrypted output as the input of *enc.py*. The encrypter and the decrypter should use the same program and the same parameter. Enjoy URLs of magic realism in Tieba!  
 **Notice that *enc.py* is not safe at all as cryptography. Do not encrypt important messages only with *enc.py***.  
-输入方式：命令行argv[1]参数直接输入需要加密的字符串，或者命令行不输入参数，由程序自行读取input.txt
+输入方式：命令行argv[1]参数直接输入需要加密的字符串，或者命令行不输入参数，由程序自行读取input.txt  
 安卓手机使用方法：安装QPython3，把enc.py下载到手机上，在enc.py旁边建立input.txt（内含需要加密或解密的内容），运行enc.py
