@@ -16,6 +16,8 @@ arrayvideo: plays a 3-dimensional numpy array[height, width, number_of_frames] a
 grayimg: transform any image into gray a one. Just faster and more convenient than heavy softwares.  
   
 tiebaUrlEncrypt: This is not meant to encrypt messages to confuse humans. You know Baidu Tieba forbids all kinds of URLs, so we have to post URLs encrypted with this tool (*enc.py*) to confuse Tieba.  
+**这个轮子超级难造。单纯的Python很难通用全操作系统。可能以后会做成浏览器插件的形式。也许还需要一套更复杂更通用的加密规则。**  
+**This wheel, with only Python scripts, does not bring real convenience to all operating systems. I am considering to build a browser extension instead.**  
 Example input and outut:  
 **https://github.com/Hecate2/ISML_auto_voter/raw/master/DestroyerIGN/CINT%20the%20Space%20Fleet%20Hecate2%20(%E6%9C%AA%E9%85%8D%E4%B9%90).docx**  
 **䁨䁴䁴䁰䁳䀺䀯䀯䁧䁩䁴䁨䁵䁢䀮䁣䁯䁭䀯䁈䁥䁣䁡䁴䁥䀲䀯䁉䁓䁍䁌䁟䁡䁵䁴䁯䁟䁶䁯䁴䁥䁲䀯䁲䁡䁷䀯䁭䁡䁳䁴䁥䁲䀯䁄䁥䁳䁴䁲䁯䁹䁥䁲䁉䁇䁎䀯䁃䁉䁎䁔䀥䀲䀰䁴䁨䁥䀥䀲䀰䁓䁰䁡䁣䁥䀥䀲䀰䁆䁬䁥䁥䁴䀥䀲䀰䁈䁥䁣䁡䁴䁥䀲䀥䀲䀰䀨䀥䁅䀶䀥䀹䁃䀥䁁䁁䀥䁅䀹䀥䀸䀵䀥䀸䁄䀥䁅䀴䀥䁂䀹䀥䀹䀰䀩䀮䁤䁯䁣䁸**  
