@@ -1,6 +1,11 @@
 import os
 import logging
 from logging import handlers
+import sys
+import io
+import urllib.parse
+import html
+from http import HTTPStatus
 import http.server
 from base64 import b64decode, b64encode
 
@@ -80,8 +85,67 @@ class BasicAuthHandler(http.server.SimpleHTTPRequestHandler):
         logger.debug(f"{self.client_address[0]} {args}")
 
 
-if __name__ == '__main__':
+    def list_directory(self, path):
+        """Helper to produce a directory listing (absent index.html).
 
+        Return value is either a file object, or None (indicating an
+        error).  In either case, the headers are sent, making the
+        interface the same as for send_head().
+
+        """
+        try:
+            list = os.listdir(path)
+        except OSError:
+            self.send_error(
+                HTTPStatus.NOT_FOUND,
+                "No permission to list directory")
+            return None
+        list.sort(key=lambda a: a.lower(), reverse=True)
+        r = []
+        try:
+            displaypath = urllib.parse.unquote(self.path,
+                                               errors='surrogatepass')
+        except UnicodeDecodeError:
+            displaypath = urllib.parse.unquote(path)
+        displaypath = html.escape(displaypath, quote=False)
+        enc = sys.getfilesystemencoding()
+        title = 'Directory listing for %s' % displaypath
+        r.append('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" '
+                 '"http://www.w3.org/TR/html4/strict.dtd">')
+        r.append('<html>\n<head>')
+        r.append('<meta http-equiv="Content-Type" '
+                 'content="text/html; charset=%s">' % enc)
+        r.append('<title>%s</title>\n</head>' % title)
+        r.append('<body>\n<h1>%s</h1>' % title)
+        r.append('<hr>\n<ul>')
+        for name in list:
+            fullname = os.path.join(path, name)
+            displayname = linkname = name
+            # Append / for directories or @ for symbolic links
+            if os.path.isdir(fullname):
+                displayname = name + "/"
+                linkname = name + "/"
+            if os.path.islink(fullname):
+                displayname = name + "@"
+                # Note: a link to a directory displays with @ and links with /
+            r.append('<li><a href="%s">%s</a></li>'
+                    % (urllib.parse.quote(linkname,
+                                          errors='surrogatepass'),
+                       html.escape(displayname, quote=False)))
+        r.append('</ul>\n<hr>\n</body>\n</html>\n')
+        encoded = '\n'.join(r).encode(enc, 'surrogateescape')
+        f = io.BytesIO()
+        f.write(encoded)
+        f.seek(0)
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-type", "text/html; charset=%s" % enc)
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        return f
+
+
+
+def main():
     # Create Handler Instance
     handler = BasicAuthHandler
 
@@ -91,7 +155,7 @@ if __name__ == '__main__':
 
     # SimpleHTTPServer Setup
     bind_addr = '0.0.0.0'
-    port = 80
+    port = 23333
     httpd = http.server.HTTPServer((bind_addr, port), handler)
     dir = '../results'
     try:
@@ -102,3 +166,6 @@ if __name__ == '__main__':
         httpd.serve_forever()
     except Exception:
         logger.error("Fatal error in main loop", exc_info=True)
+
+if __name__ == '__main__':
+    main()
