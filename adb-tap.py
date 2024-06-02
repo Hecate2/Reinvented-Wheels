@@ -22,10 +22,10 @@ def manure():
     x = randint(309,370)
     y = randint(1399, 1457)
     yield f'input tap {x} {y}\n'
-    time.sleep(0.5)
     yield f'input tap {757} {1790}\n'
-    time.sleep(0.5)
-    yield f'input tap {202} {2084}\n'
+    yield f'input tap {229} {1906}\n'
+    yield f'input tap {746} {1317}\n'
+    yield f'input tap {864} {1637}\n'
 
 
 def get_call_state(procId: subprocess.Popen) -> int:
@@ -81,7 +81,7 @@ def execute_adb_command(procId, command: str):
         raise KeyboardInterrupt
     # else:
     #     print(f"No call: {result}")
-    procId.stdin.write(water_command.encode())
+    # procId.stdin.write(water_command.encode())
     procId.stdin.flush()
 
 
@@ -107,4 +107,6 @@ for i in range(5):  # manure
             input("Press Enter to continue")
     print("manure")
     for cmd in manure():
+        print(cmd)
         execute_adb_command(procId, cmd)
+        time.sleep(0.5)
