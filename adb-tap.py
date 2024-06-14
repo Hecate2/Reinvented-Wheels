@@ -2,6 +2,7 @@ import subprocess
 import traceback
 from random import randint
 import time
+import datetime
 
 '''input swipe 353 978 299 200 356'''
 '''srcX, srcY, dstX, dstY, time(ms)'''
@@ -93,11 +94,11 @@ for i in range(5):  # manure
         try:
             water_command = water()
             sleep_time = 3
-            print(f'sleep {sleep_time} seconds after: {water_command}', end='')
+            print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {water_command}', end='')
             execute_adb_command(procId, water_command)
             while sleep_time > 0:
                 print('\r', end='')
-                print(f'time.sleep({sleep_time})', end='')
+                print(f'{datetime.datetime.now().isoformat()} time.sleep({sleep_time})', end='')
                 time.sleep(1)
                 sleep_time -= 1
             print('\r', end='')
@@ -105,7 +106,7 @@ for i in range(5):  # manure
             print(e)
             traceback.print_exc()
             input("Press Enter to continue")
-    print("manure")
+    print("{datetime.datetime.now().isoformat()} manure")
     for cmd in manure():
         print(cmd)
         execute_adb_command(procId, cmd)

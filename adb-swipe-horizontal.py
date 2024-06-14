@@ -1,6 +1,7 @@
 import subprocess
 from random import randint
 import time
+import datetime
 
 '''input swipe 353 978 299 200 356'''
 '''srcX, srcY, dstX, dstY, time(ms)'''
@@ -62,7 +63,7 @@ time.sleep(3)
 while 1:
     swipe = gen_swipe_cmd()
     sleep_time = randint(3, 14)
-    print(f'sleep {sleep_time} seconds after: {swipe}', end='')
+    print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
     if (result := get_call_state(procId)) == 1:
         answer_call()
     if not meituan_focused(procId):
@@ -73,7 +74,7 @@ while 1:
     procId.stdin.flush()
     while sleep_time > 0:
         print('\r', end='')
-        print(f'time.sleep({sleep_time})', end='')
+        print(f'{datetime.datetime.now().isoformat()} time.sleep({sleep_time})', end='')
         time.sleep(1)
         sleep_time -= 1
     print('\r', end='')
