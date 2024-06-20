@@ -106,8 +106,8 @@ for i in range(5):  # manure
             print(e)
             traceback.print_exc()
             input("Press Enter to continue")
-    print("{datetime.datetime.now().isoformat()} manure")
+    print(f"{datetime.datetime.now().isoformat()} manure")
     for cmd in manure():
-        print(cmd)
+        print(cmd, end='')
         execute_adb_command(procId, cmd)
         time.sleep(0.5)
