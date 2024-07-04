@@ -93,17 +93,17 @@ for i in range(5):  # manure
     for i in range(8):  # water
         try:
             water_command = water()
-            sleep_time = 2.5
-            print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {water_command}', end='')
+            sleep_time = 2.6
+            print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {water_command}', end='', flush=True)
             execute_adb_command(procId, water_command)
             while sleep_time > 1:
                 print('\r', end='')
-                print(f'{datetime.datetime.now().isoformat()} time.sleep({sleep_time})', end='')
-                time.sleep(1)
+                print(f'{datetime.datetime.now().isoformat()} sleep({sleep_time})', end='', flush=True)
                 sleep_time -= 1
+                time.sleep(1)
             else:
                 print('\r', end='')
-                print(f'{datetime.datetime.now().isoformat()} time.sleep({sleep_time})', end='')
+                print(f'{datetime.datetime.now().isoformat()} sleep({sleep_time})', end='', flush=True)
                 time.sleep(sleep_time)
             print('\r', end='')
         except (Exception, KeyboardInterrupt) as e:
