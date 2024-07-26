@@ -9,6 +9,9 @@ import datetime
 '''resolution 1080 2400+'''
 
 
+allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile"}
+
+
 def gen_swipe_cmd():
     srcX = randint(594, 1077)
     srcY = randint(1539, 2103)
@@ -40,8 +43,10 @@ def meituan_focused(procId: subprocess.Popen) -> bool:
     result = False
     try:
         while line := procId.stdout.readline().decode():
-            if "com.sankuai.meituan" in line:
-                result = True
+            if not result:
+                for app in allowed_apps:
+                    if app in line:
+                        result = True
             if line.replace('\r', '') == '0\n':
                 break
     except subprocess.CalledProcessError as e:
@@ -62,7 +67,7 @@ procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.
 time.sleep(3)
 while 1:
     swipe = gen_swipe_cmd()
-    sleep_time = randint(3, 14)
+    sleep_time = randint(10, 23)
     print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
     if (result := get_call_state(procId)) == 1:
         answer_call()
