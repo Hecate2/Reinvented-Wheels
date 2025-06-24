@@ -10,7 +10,7 @@ import datetime
 '''resolution 1080 2400+'''
 
 
-allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish'}
+allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo"}
 
 
 def gen_swipe_cmd():
@@ -42,8 +42,10 @@ def meituan_focused(procId: subprocess.Popen) -> bool:
     procId.stdin.write(cmd.encode())
     procId.stdin.flush()
     result = False
+    output = ""
     try:
         while line := procId.stdout.readline().decode():
+            output += line
             if not result:
                 for app in allowed_apps:
                     if app in line:
@@ -55,7 +57,7 @@ def meituan_focused(procId: subprocess.Popen) -> bool:
     if result:
         return True
     else:
-        raise KeyboardInterrupt('Allowed apps not focused')
+        raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
 
 
 def answer_call():
