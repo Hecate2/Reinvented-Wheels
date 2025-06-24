@@ -71,14 +71,32 @@ while 1:
         swipe = gen_swipe_cmd()
         sleep_time = randint(3, 14)
         print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
-        if (result := get_call_state(procId)) == 1:
-            answer_call()
-        if not meituan_focused(procId):
-            raise KeyboardInterrupt
-        # else:
-        #     print(f"No call: {result}")
-        procId.stdin.write(swipe.encode())
-        procId.stdin.flush()
+        while 1:
+            try:
+                if (result := get_call_state(procId)) == 1:
+                    answer_call()
+                if not meituan_focused(procId):
+                    raise KeyboardInterrupt
+                break
+            except KeyboardInterrupt:
+                raise
+            except BrokenPipeError:
+                procId.kill()
+                traceback.print_exc()
+                procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+                time.sleep(3)
+            # else:
+            #     print(f"No call: {result}")
+        while 1:
+            try:
+                procId.stdin.write(swipe.encode())
+                procId.stdin.flush()
+                break
+            except BrokenPipeError:
+                procId.kill()
+                traceback.print_exc()
+                procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+                time.sleep(3)
         while sleep_time > 0:
             print('\r', end='')
             print(f'{datetime.datetime.now().isoformat()} time.sleep({sleep_time})', end='')
