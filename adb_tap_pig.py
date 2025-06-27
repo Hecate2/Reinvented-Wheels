@@ -8,7 +8,7 @@ allowed_apps = {"com.sankuai.meituan"}
 
 
 def gen_tap_cmd():
-    return f'input tap 603 912\n'
+    return f'input tap 554 758\n'
 
 
 def get_call_state(procId: subprocess.Popen) -> int:
