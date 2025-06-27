@@ -4,7 +4,7 @@ from random import randint
 import time
 import datetime
 
-allowed_apps = {"com.sankuai.meituan"}
+allowed_apps = {"com.sankuai.meituan", "com.taobao.idlefish"}
 
 
 def gen_tap_cmd():
