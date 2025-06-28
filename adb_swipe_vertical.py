@@ -3,6 +3,7 @@ import traceback
 from random import randint
 import time
 import datetime
+import re
 
 '''input swipe 353 978 299 200 356'''
 '''srcX, srcY, dstX, dstY, time(ms)'''
@@ -11,6 +12,10 @@ import datetime
 
 
 allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo"}
+
+app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
+app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
+output_end_marker_regex = re.compile(r'^0$')
 
 
 def gen_swipe_cmd():
@@ -37,33 +42,52 @@ def get_call_state(procId: subprocess.Popen) -> int:
         print(f"Error executing adb command: {e}")
 
 
-def meituan_focused(procId: subprocess.Popen) -> bool:
-    cmd = 'dumpsys window | grep mCurrentFocus && echo \\0\n'
+def allowed_app_focused(procId: subprocess.Popen) -> bool:
+    cmd = """dumpsys window w | grep -v 'com.android.systemui.ImageWallpaper' | grep 'mSurface=Surface(name=com' -A 3 && echo \\0\n"""
     procId.stdin.write(cmd.encode())
     procId.stdin.flush()
     result = False
     output = ""
+    # full output example for a split screen
+    """
+      mSurface=Surface(name=com.taobao.taobao/com.taobao.tao.welcome.Welcome)/@0xa8f1231
+      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0) 1080 x 1528 transform=(1.0, 0.0, 1.0, 0.0)
+      mDrawState=HAS_DRAWN       mLastHidden=false
+      mEnterAnimationPending=false      mSystemDecorRect=[0,0][1080,2408] mLastClipRect=[0,0][0,0]
+--
+      mSurface=Surface(name=com.sankuai.meituan/com.sankuai.titans.adapter.mtapp.KNBWebViewActivity)/@0xa440d4a
+      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0) 1080 x 872 transform=(1.0, 0.0, 1.0, 0.0)
+      mDrawState=HAS_DRAWN       mLastHidden=false
+      mEnterAnimationPending=false      mSystemDecorRect=[0,0][0,0] mLastClipRect=[0,0][0,0]
+0   """
     try:
         while line := procId.stdout.readline().decode():
-            output += line
-            if not result:
-                for app in allowed_apps:
-                    if app in line:
-                        result = True
-            if line.replace('\r', '') == '0\n':
+            if output_end_marker_regex.match(line):
                 break
+            output += line
     except subprocess.CalledProcessError as e:
         print(f"Error executing adb command: {e}")
-    if result:
-        return True
-    else:
-        raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
+    output_apps: list[str] = output.split('--')
+    for output_app in output_apps:
+        allowed_app_running = False
+        if app_name := app_name_regex.search(output_app):
+            app_name = app_name.group(1)
+            for allowed_app in allowed_apps:
+                if allowed_app in app_name:
+                    allowed_app_running = True
+                    break
+            if allowed_app_running:
+                if app_area := app_area_regex.search(output_app):
+                    area_x, area_y = int(app_area.group(1)), int(app_area.group(2))
+                    if area_y > 1400:
+                        return True
+    raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
 
 
 def answer_call():
     # stop the whole program for now!
     raise NotImplementedError('DO NOT INVOKE THIS FUNCTION')
-    subprocess.call('adb shell input keyevent 5', shell=True)
+    # subprocess.call('adb shell input keyevent 5', shell=True)
 
 
 procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
@@ -77,7 +101,7 @@ while 1:
             try:
                 if (result := get_call_state(procId)) == 1:
                     answer_call()
-                if not meituan_focused(procId):
+                if not allowed_app_focused(procId):
                     raise KeyboardInterrupt
                 break
             except KeyboardInterrupt:
