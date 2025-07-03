@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import traceback
 from random import randint
 import time
@@ -16,7 +17,11 @@ allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao'
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
 app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
 output_end_marker_regex = re.compile(r'^0$')
-
+cmd_args = sys.argv
+try: min_sleep_seconds = int(cmd_args[1])
+except: min_sleep_seconds = 3
+try: max_sleep_seconds = int(cmd_args[2])
+except: max_sleep_seconds = 14
 
 def gen_swipe_cmd():
     srcX = randint(137, 772)
@@ -95,7 +100,7 @@ time.sleep(3)
 while 1:
     try:
         swipe = gen_swipe_cmd()
-        sleep_time = randint(3, 14)
+        sleep_time = randint(min_sleep_seconds, max_sleep_seconds)
         print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
         while 1:
             try:
