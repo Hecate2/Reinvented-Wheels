@@ -28,6 +28,8 @@ def gen_swipe_cmd():
     srcY = randint(823, 1400)
     return f'input swipe {srcX} {srcY} {srcX + randint(-77, 120)} {srcY - randint(223, 726)} {randint(50, 97)}\n'
 
+def gen_small_swipe_cmd():
+    return f'input swipe 137 823 137 723\n'
 
 def get_call_state(procId: subprocess.Popen) -> int:
     cmd = 'dumpsys telephony.registry | grep mCallState && echo \\0\n'
@@ -47,7 +49,7 @@ def get_call_state(procId: subprocess.Popen) -> int:
         print(f"Error executing adb command: {e}")
 
 
-def allowed_app_focused(procId: subprocess.Popen) -> bool:
+def allowed_app_focused(procId: subprocess.Popen) -> (bool, int):
     cmd = """dumpsys window w | grep -v 'com.android.systemui.ImageWallpaper' | grep 'mSurface=Surface(name=com' -A 3 && echo \\0\n"""
     procId.stdin.write(cmd.encode())
     procId.stdin.flush()
@@ -85,7 +87,7 @@ def allowed_app_focused(procId: subprocess.Popen) -> bool:
                 if app_area := app_area_regex.search(output_app):
                     area_x, area_y = int(app_area.group(1)), int(app_area.group(2))
                     if area_y > 1400:
-                        return True
+                        return True, len(output_apps)
     raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
 
 
@@ -106,8 +108,11 @@ while 1:
             try:
                 if (result := get_call_state(procId)) == 1:
                     answer_call()
-                if not allowed_app_focused(procId):
+                (focused, total_apps) = allowed_app_focused(procId)
+                if not focused:
                     raise KeyboardInterrupt
+                if total_apps > 1:
+                    swipe = gen_small_swipe_cmd() + swipe
                 break
             except KeyboardInterrupt:
                 raise
