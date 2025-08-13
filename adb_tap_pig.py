@@ -9,7 +9,7 @@ allowed_apps = {"com.sankuai.meituan", "com.taobao.idlefish", "com.eg.android.Al
 
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
 app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
-output_end_marker_regex = re.compile(r'^0$')
+output_end_marker_regex = re.compile(r'^0[\r]?$')
 
 
 def gen_tap_cmd():

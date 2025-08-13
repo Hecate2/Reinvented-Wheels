@@ -16,7 +16,7 @@ allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao'
 
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
 app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
-output_end_marker_regex = re.compile(r'^0$')
+output_end_marker_regex = re.compile(r'^0[\r]?$')
 cmd_args = sys.argv
 try: min_sleep_seconds = int(cmd_args[1])
 except: min_sleep_seconds = 3
