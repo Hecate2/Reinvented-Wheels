@@ -116,7 +116,7 @@ while 1:
                 break
             except KeyboardInterrupt:
                 raise
-            except BrokenPipeError:
+            except (BrokenPipeError, OSError):
                 procId.kill()
                 traceback.print_exc()
                 procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
