@@ -12,7 +12,7 @@ import re
 '''resolution 1080 2400+'''
 
 
-allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo"}
+allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo", "com.tmall.wireless"}
 
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
 app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
