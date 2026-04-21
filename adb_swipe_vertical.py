@@ -12,7 +12,7 @@ import re
 '''resolution 1080 2400+'''
 
 
-allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo", "com.tmall.wireless", "com.cat.readall"}
+allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.sankuai.meituan', 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo", "com.tmall.wireless", "com.cat.readall"}
 
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
 app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
@@ -77,16 +77,19 @@ def allowed_app_focused(procId: subprocess.Popen) -> (bool, int):
     output_apps: list[str] = output.split('--')
     for output_app in output_apps:
         allowed_app_running = False
-        if app_name := app_name_regex.search(output_app):
-            app_name = app_name.group(1)
+        app_name_match = app_name_regex.search(output_app)
+        if app_name_match:
+            app_name = app_name_match.group(1)
             for allowed_app in allowed_apps:
                 if allowed_app in app_name:
                     allowed_app_running = True
                     break
             if allowed_app_running:
-                if app_area := app_area_regex.search(output_app):
-                    area_x, area_y = int(app_area.group(1)), int(app_area.group(2))
-                    if area_y > 1400:
+                app_area = app_area_regex.search(output_app)
+                if app_area:
+                    area_x = int(float(app_area.group(1)))
+                    area_y = int(float(app_area.group(2)))
+                    if max(area_x, area_y) > 1400:
                         return True, len(output_apps)
     raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
 
