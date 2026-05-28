@@ -14,8 +14,10 @@ import re
 
 allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.sankuai.meituan', 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo", "com.tmall.wireless", "com.cat.readall"}
 
-app_name_regex = re.compile(r'mSurface=Surface\(name=(.*)\)')
-app_area_regex = re.compile(r'rect=\(.*\) (\d+) x (\d+) transform=')
+app_name_regex = re.compile(r'mSurface=Surface\(name=(.*?)\)')
+focus_window_regex = re.compile(r'mCurrentFocus=Window\{[^}]+ ([^ ]+)\}')
+window_header_regex = re.compile(r'Window #\d+ Window\{[^}]+ ([^ ]+)\}:')
+window_config_regex = re.compile(r'mBounds=Rect\((\d+), (\d+) - (\d+), (\d+)\).*mWindowingMode=([a-z\-]+)')
 output_end_marker_regex = re.compile(r'^0[\r]?$')
 cmd_args = sys.argv
 try: min_sleep_seconds = int(cmd_args[1])
@@ -23,13 +25,45 @@ except: min_sleep_seconds = 3
 try: max_sleep_seconds = int(cmd_args[2])
 except: max_sleep_seconds = 14
 
-def gen_swipe_cmd():
-    srcX = randint(137, 772)
-    srcY = randint(823, 1400)
-    return f'input swipe {srcX} {srcY} {srcX + randint(-77, 120)} {srcY - randint(223, 726)} {randint(50, 97)}\n'
+def rand_between(low: int, high: int) -> int:
+    if low >= high:
+        return low
+    return randint(low, high)
 
-def gen_small_swipe_cmd():
-    return f'input swipe 137 823 137 723\n'
+
+def is_allowed_app(app_name: str) -> bool:
+    for allowed_app in allowed_apps:
+        if allowed_app in app_name:
+            return True
+    return False
+
+
+def gen_swipe_cmd(bounds=None):
+    # if bounds is None:
+    srcX = randint(137, 772)
+    srcY = randint(700, 750)
+    return f'input swipe {srcX} {srcY} {srcX + randint(-77, 120)} {srcY - randint(600, 700)} {randint(50, 97)}\n'
+
+    left, top, right, bottom = bounds
+    width = max(right - left, 1)
+    height = max(bottom - top, 1)
+    srcX = rand_between(left + width // 8, left + width * 5 // 6)
+    srcY = rand_between(top + height * 2 // 3, top + height * 9 // 10)
+    dstX = max(left, min(right, srcX + randint(-77, 120)))
+    dstY = rand_between(top + height // 5, top + height * 2 // 5)
+    return f'input swipe {srcX} {srcY} {dstX} {dstY} {randint(50, 97)}\n'
+
+def gen_small_swipe_cmd(bounds=None):
+    # if bounds is None:
+    return f'input swipe 237 223 237 123\n'
+
+    left, top, right, bottom = bounds
+    width = max(right - left, 1)
+    height = max(bottom - top, 1)
+    srcX = left + width // 2
+    srcY = top + height * 3 // 4
+    dstY = top + height * 2 // 3
+    return f'input swipe {srcX} {srcY} {srcX} {dstY} {randint(30, 55)}\n'
 
 def get_call_state(procId: subprocess.Popen) -> int:
     cmd = 'dumpsys telephony.registry | grep mCallState && echo \\0\n'
@@ -49,24 +83,11 @@ def get_call_state(procId: subprocess.Popen) -> int:
         print(f"Error executing adb command: {e}")
 
 
-def allowed_app_focused(procId: subprocess.Popen) -> (bool, int):
-    cmd = """dumpsys window w | grep -v 'com.android.systemui.ImageWallpaper' | grep 'mSurface=Surface(name=com' -A 3 && echo \\0\n"""
+def allowed_app_focused(procId: subprocess.Popen):
+    cmd = 'dumpsys window windows && echo \\0\n'
     procId.stdin.write(cmd.encode())
     procId.stdin.flush()
-    result = False
     output = ""
-    # full output example for a split screen
-    """
-      mSurface=Surface(name=com.taobao.taobao/com.taobao.tao.welcome.Welcome)/@0xa8f1231
-      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0) 1080 x 1528 transform=(1.0, 0.0, 1.0, 0.0)
-      mDrawState=HAS_DRAWN       mLastHidden=false
-      mEnterAnimationPending=false      mSystemDecorRect=[0,0][1080,2408] mLastClipRect=[0,0][0,0]
---
-      mSurface=Surface(name=com.sankuai.meituan/com.sankuai.titans.adapter.mtapp.KNBWebViewActivity)/@0xa440d4a
-      Surface: shown=true layer=0 alpha=1.0 rect=(0.0,0.0) 1080 x 872 transform=(1.0, 0.0, 1.0, 0.0)
-      mDrawState=HAS_DRAWN       mLastHidden=false
-      mEnterAnimationPending=false      mSystemDecorRect=[0,0][0,0] mLastClipRect=[0,0][0,0]
-0   """
     try:
         while line := procId.stdout.readline().decode():
             if output_end_marker_regex.match(line):
@@ -74,24 +95,66 @@ def allowed_app_focused(procId: subprocess.Popen) -> (bool, int):
             output += line
     except subprocess.CalledProcessError as e:
         print(f"Error executing adb command: {e}")
-    output_apps: list[str] = output.split('--')
-    for output_app in output_apps:
-        allowed_app_running = False
-        app_name_match = app_name_regex.search(output_app)
-        if app_name_match:
-            app_name = app_name_match.group(1)
-            for allowed_app in allowed_apps:
-                if allowed_app in app_name:
-                    allowed_app_running = True
-                    break
-            if allowed_app_running:
-                app_area = app_area_regex.search(output_app)
-                if app_area:
-                    area_x = int(float(app_area.group(1)))
-                    area_y = int(float(app_area.group(2)))
-                    if max(area_x, area_y) > 1400:
-                        return True, len(output_apps)
-    raise KeyboardInterrupt(f'Allowed apps not focused. Current app {output}')
+
+    focus_app = None
+    visible_windows = []
+    current_window = None
+
+    def append_window(window):
+        if not window:
+            return
+        if window.get('visible') and window.get('app_name') and window.get('bounds'):
+            visible_windows.append(window)
+
+    for raw_line in output.splitlines():
+        line = raw_line.strip()
+        if focus_match := focus_window_regex.search(line):
+            focus_app = focus_match.group(1)
+            continue
+        if window_match := window_header_regex.search(line):
+            append_window(current_window)
+            current_window = {
+                'window_name': window_match.group(1),
+                'app_name': None,
+                'bounds': None,
+                'windowing_mode': None,
+                'visible': False,
+            }
+            continue
+        if current_window is None:
+            continue
+        if config_match := window_config_regex.search(line):
+            current_window['bounds'] = tuple(int(value) for value in config_match.groups()[:4])
+            current_window['windowing_mode'] = config_match.group(5)
+            continue
+        if app_name_match := app_name_regex.search(line):
+            current_window['app_name'] = app_name_match.group(1)
+            continue
+        if 'Surface: shown=true' in line:
+            current_window['visible'] = True
+
+    append_window(current_window)
+
+    top_split_window = None
+    for window in visible_windows:
+        if window['windowing_mode'] == 'split-screen-primary':
+            top_split_window = window
+            break
+
+    if top_split_window is not None:
+        top_app_name = top_split_window['app_name']
+        if not is_allowed_app(top_app_name):
+            raise KeyboardInterrupt(f'Upper split app not allowed. focus={focus_app} top={top_app_name}')
+        top_focused = focus_app is not None and top_app_name in focus_app
+        return True, (not top_focused), top_split_window['bounds']
+
+    for window in visible_windows:
+        app_name = window['app_name']
+        if is_allowed_app(app_name):
+            return True, False, None
+
+    visible_apps = [window['app_name'] for window in visible_windows]
+    raise KeyboardInterrupt(f'Allowed apps not focused. focus={focus_app} visible={visible_apps}')
 
 
 def answer_call():
@@ -104,18 +167,18 @@ procId = subprocess.Popen('adb shell', stdin=subprocess.PIPE, stdout=subprocess.
 time.sleep(3)
 while 1:
     try:
-        swipe = gen_swipe_cmd()
         sleep_time = randint(min_sleep_seconds, max_sleep_seconds)
-        print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
         while 1:
             try:
                 if (result := get_call_state(procId)) == 1:
                     answer_call()
-                (focused, total_apps) = allowed_app_focused(procId)
+                (focused, should_focus_first, swipe_bounds) = allowed_app_focused(procId)
                 if not focused:
                     raise KeyboardInterrupt
-                if total_apps > 1:
-                    swipe = gen_small_swipe_cmd() + swipe
+                swipe = gen_swipe_cmd(swipe_bounds)
+                if should_focus_first:
+                    swipe = gen_small_swipe_cmd(swipe_bounds) + swipe
+                print(f'{datetime.datetime.now().isoformat()} sleep {sleep_time} seconds after: {swipe}', end='')
                 break
             except KeyboardInterrupt:
                 raise
