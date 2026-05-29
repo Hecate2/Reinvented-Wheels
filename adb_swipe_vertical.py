@@ -13,11 +13,12 @@ import re
 
 
 allowed_apps = {'com.xunmeng.pinduoduo', "com.sankuai.meituan", 'com.sankuai.meituan', 'com.taobao.tao', "com.alipay.mobile", "com.eg.android.AlipayGphone", 'com.taobao.idlefish', "com.sina.weibo", "com.tmall.wireless", "com.cat.readall"}
+split_chooser_packages = {'com.bbk.launcher2', 'com.vivo.smartmultiwindow', 'com.vivo.globalsearch'}
 
 app_name_regex = re.compile(r'mSurface=Surface\(name=(.*?)\)')
 focus_window_regex = re.compile(r'mCurrentFocus=Window\{[^}]+ ([^ ]+)\}')
 window_header_regex = re.compile(r'Window #\d+ Window\{[^}]+ ([^ ]+)\}:')
-window_config_regex = re.compile(r'mBounds=Rect\((\d+), (\d+) - (\d+), (\d+)\).*mWindowingMode=([a-z\-]+)')
+window_config_regex = re.compile(r'mBounds=Rect\((\d+), (\d+) - (\d+), (\d+)\).*mWindowingMode=([a-z\-]+).*mActivityType=([a-z\-]+)')
 output_end_marker_regex = re.compile(r'^0[\r]?$')
 cmd_args = sys.argv
 try: min_sleep_seconds = int(cmd_args[1])
@@ -46,6 +47,13 @@ def is_same_app(window_name: str, focus_name: str) -> bool:
     if not window_name or not focus_name:
         return False
     return get_package_name(window_name) == get_package_name(focus_name)
+
+
+def is_split_chooser_window(window) -> bool:
+    package_name = get_package_name(window['app_name'])
+    if package_name in split_chooser_packages:
+        return True
+    return window.get('activity_type') == 'home'
 
 
 def gen_swipe_cmd(bounds=None):
@@ -128,6 +136,7 @@ def allowed_app_focused(procId: subprocess.Popen):
                 'app_name': None,
                 'bounds': None,
                 'windowing_mode': None,
+                'activity_type': None,
                 'visible': False,
             }
             continue
@@ -136,6 +145,7 @@ def allowed_app_focused(procId: subprocess.Popen):
         if config_match := window_config_regex.search(line):
             current_window['bounds'] = tuple(int(value) for value in config_match.groups()[:4])
             current_window['windowing_mode'] = config_match.group(5)
+            current_window['activity_type'] = config_match.group(6)
             continue
         if app_name_match := app_name_regex.search(line):
             current_window['app_name'] = app_name_match.group(1)
@@ -145,8 +155,19 @@ def allowed_app_focused(procId: subprocess.Popen):
 
     append_window(current_window)
 
-    top_split_window = None
+    split_windows = []
     for window in visible_windows:
+        if window['windowing_mode'] in {'split-screen-primary', 'split-screen-secondary'}:
+            split_windows.append(window)
+
+    if split_windows:
+        for window in split_windows:
+            if is_split_chooser_window(window):
+                visible_apps = [split_window['app_name'] for split_window in split_windows]
+                raise KeyboardInterrupt(f'Split chooser active. focus={focus_app} visible={visible_apps}')
+
+    top_split_window = None
+    for window in split_windows:
         if window['windowing_mode'] == 'split-screen-primary':
             top_split_window = window
             break
