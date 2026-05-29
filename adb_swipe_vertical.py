@@ -38,6 +38,16 @@ def is_allowed_app(app_name: str) -> bool:
     return False
 
 
+def get_package_name(window_name: str) -> str:
+    return window_name.split('/', 1)[0]
+
+
+def is_same_app(window_name: str, focus_name: str) -> bool:
+    if not window_name or not focus_name:
+        return False
+    return get_package_name(window_name) == get_package_name(focus_name)
+
+
 def gen_swipe_cmd(bounds=None):
     # if bounds is None:
     srcX = randint(137, 772)
@@ -84,7 +94,7 @@ def get_call_state(procId: subprocess.Popen) -> int:
 
 
 def allowed_app_focused(procId: subprocess.Popen):
-    cmd = 'dumpsys window windows && echo \\0\n'
+    cmd = "dumpsys window | grep -Ei 'mCurrentFocus='; dumpsys window windows && echo \\0\n"
     procId.stdin.write(cmd.encode())
     procId.stdin.flush()
     output = ""
@@ -145,12 +155,12 @@ def allowed_app_focused(procId: subprocess.Popen):
         top_app_name = top_split_window['app_name']
         if not is_allowed_app(top_app_name):
             raise KeyboardInterrupt(f'Upper split app not allowed. focus={focus_app} top={top_app_name}')
-        top_focused = focus_app is not None and top_app_name in focus_app
+        top_focused = is_same_app(top_app_name, focus_app)
         return True, (not top_focused), top_split_window['bounds']
 
     for window in visible_windows:
         app_name = window['app_name']
-        if is_allowed_app(app_name):
+        if is_allowed_app(app_name) and is_same_app(app_name, focus_app):
             return True, False, None
 
     visible_apps = [window['app_name'] for window in visible_windows]
